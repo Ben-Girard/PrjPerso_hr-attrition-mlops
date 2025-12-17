@@ -1,0 +1,71 @@
+[project]
+name = "technova-attrition"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Benoit Girard", email = "benoit.girard@unige.ch" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "matplotlib>=3.10.8",
+    "missingno>=0.5.2",
+    "numpy>=2.3.5",
+    "pandas>=2.3.3",
+    "pyarrow>=22.0.0",
+    "scikit-learn>=1.8.0",
+    "scipy>=1.16.3",
+    "seaborn>=0.13.2",
+    "statsmodels>=0.14.6",
+]
+
+[project.scripts]
+technova-attrition = "technova_attrition:main"
+
+[build-system]
+requires = ["uv_build>=0.9.9,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+db = [
+    "psycopg[binary]>=3.3.2",
+    "sqlalchemy>=2.0.45",
+]
+dev = [
+    "bandit>=1.9.2",
+    "pre-commit>=4.5.1",
+    "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
+    "python-dotenv>=1.2.1",
+    "ruff>=0.14.9",
+]
+mlops = [
+    "dice-ml>=0.12",
+    "evidently>=0.7.17",
+    "mlflow>=3.7.0",
+    "optuna>=4.6.0",
+    "shap>=0.49.1",
+]
+notebook = [
+    "ipykernel>=7.1.0",
+    "jupyterlab>=4.5.1",
+]
+serve = [
+    "fastapi>=0.124.4",
+    "gradio>=6.1.0",
+    "pydantic>=2.12.4",
+    "streamlit>=1.52.1",
+    "uvicorn[standard]>=0.38.0",
+]
+
+[tool.ruff]
+line-length = 100
+extend-select = ["I"]  # import sorting
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+testpaths = ["tests"]
+pythonpath = ["src"]
