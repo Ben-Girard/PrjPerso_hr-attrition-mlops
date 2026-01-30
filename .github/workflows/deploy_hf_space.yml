@@ -8,6 +8,30 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: technova
+          POSTGRES_PASSWORD: technova_pwd
+          POSTGRES_DB: technova_attrition
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U technova -d technova_attrition"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      # IMPORTANT: on évite de charger tes .env locaux en CI
+      SKIP_DOTENV: "1"
+      API_KEY: "test_key"
+      MODEL_THRESHOLD: "0.5"
+      MODEL_VERSION: "ci"
+      DATABASE_URL: "postgresql+psycopg://technova:technova_pwd@localhost:5432/technova_attrition"
+
     steps:
       - uses: actions/checkout@v4
 
@@ -18,6 +42,21 @@ jobs:
 
       - name: Install deps (dev + serve + db)
         run: uv sync --frozen --group dev --group serve --group db
+
+      - name: Wait for Postgres
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+          until pg_isready -h localhost -p 5432 -U technova -d technova_attrition; do
+            echo "Waiting for postgres..."
+            sleep 1
+          done
+
+      - name: Apply DB schema
+        run: uv run python scripts/db_apply_schema.py
+
+      - name: Seed employees (safe sample)
+        run: uv run python scripts/db_seed_employees.py
 
       - name: Run tests
         run: uv run pytest -q
@@ -37,9 +76,4 @@ jobs:
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-
-          # Push main -> Space main
-          git remote add hf https://huggingface.co/spaces/${HF_SPACE}
-
-          # Use token as password over HTTPS basic auth
           git push https://bijeytis:${HF_TOKEN}@huggingface.co/spaces/${HF_SPACE} HEAD:main
